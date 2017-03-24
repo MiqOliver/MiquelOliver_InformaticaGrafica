@@ -1,0 +1,2 @@
+# MiquelOliver_InformaticaGrafica
+Trabajos informàtica gràfica
