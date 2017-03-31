@@ -4,7 +4,8 @@
 //GLFW
 #include <GLFW\glfw3.h>
 #include <iostream>
-#include "../Shader.hpp"
+#include "../src/Shader.hpp"
+#include "../src/Time.hpp"
 
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
@@ -115,6 +116,9 @@ int main() {
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
 	{
+		//Update time
+		Time.Update();
+
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwSetKeyCallback(window, key_callback);
 		//Establecer el color de fondo

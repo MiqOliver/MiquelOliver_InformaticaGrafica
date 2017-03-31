@@ -20,7 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shader.hpp">
+    <ClInclude Include="src\Time.hpp">
+      <Filter>Archivos de recursos</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Shader.hpp">
       <Filter>Archivos de recursos</Filter>
     </ClInclude>
   </ItemGroup>
