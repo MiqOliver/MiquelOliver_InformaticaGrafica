@@ -9,10 +9,10 @@
 #include <GL\glew.h>
 
 class Shader {
-private:
+public:
+
 	GLuint Program;	//identificador del programa
 
-public:
 	//Constructor
 	Shader(const GLchar*, const GLchar*);
 	//Functions

@@ -112,6 +112,8 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//liberar el buffer de vertices
 
+	GLint offsetID;
+	offsetID = glGetUniformLocation(shader.Program, "offset");
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
@@ -126,6 +128,8 @@ int main() {
 		glClearColor(0, 0, 0, 1.0);
 		//establecer el shader
 		shader.USE();
+
+		glUniform1f(offset, offsetID);
 
 		//pitar el VAO
 		glBindVertexArray(VAO);
