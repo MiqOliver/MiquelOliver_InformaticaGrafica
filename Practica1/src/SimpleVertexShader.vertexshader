@@ -11,14 +11,27 @@ out vec4 fragmentColour;
 void main(){
 
     gl_Position.xyz = vertexPosition_modelspace;
+	
+	vec4 auxCol_max;
+	vec4 auxCol_min;
+	auxCol_max = vec4(1.0, 0.0, colour_max.z, colour_max.w);
+	auxCol_min = vec4(1.0, 0.0, colour_min.z, colour_min.w);
+
+	float aux1 = offset / 0.5;
+	float aux2 = 1 - aux1;
+
+	vec4 final_col_max = vec4(aux1 * auxCol_max + aux2 * colour_max);
+	vec4 final_col_min = vec4(aux1 * auxCol_min + aux2 * colour_min);
+
+
 	if(gl_Position.y < 0) {
-		fragmentColour = colour_max;
+		fragmentColour = final_col_max;
 		if(gl_Position.x < 0)
-			gl_Position.x += offset;
-		else
 			gl_Position.x -= offset;
+		else
+			gl_Position.x += offset;
 	}
 	else
-		fragmentColour = colour_min;
+		fragmentColour = final_col_min;
     gl_Position.w = 1.0;
 }

@@ -139,7 +139,7 @@ int main() {
 
 		glUniform4f(uniColour_min, 0.0f, 1.0f, 0.0f, 1.0);
 		glUniform4f(uniColour_max, 0.0f, 1.0f, 0.75f, 1.0);
-		glUniform1f(offset, sin(time) * 0.25);
+		glUniform1f(offset, sin(time) * 0.25 + 0.25);
 
 		//pitar el VAO
 		glBindVertexArray(VAO);
