@@ -21,5 +21,4 @@ void main(){
 	else
 		fragmentColour = colour_min;
     gl_Position.w = 1.0;
-	
 }
