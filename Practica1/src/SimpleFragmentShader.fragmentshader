@@ -1,15 +1,13 @@
 #version 330 core
 
 // Input data
-uniform vec4 fragmentColour;
+in vec4 fragmentColour;
 
 // Ouput data
 out vec4 color;
 
 void main()
 {
-
 	// Output color
 	color = fragmentColour;
-
 }

@@ -112,13 +112,22 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//liberar el buffer de vertices
 
-	GLint uniColor = glGetUniformLocation(shader.Program, "fragmentColour");
+	//Uniforms
+	GLint uniColour_min = glGetUniformLocation(shader.Program, "colour_min");
+	GLint uniColour_max = glGetUniformLocation(shader.Program, "colour_max");
+	GLint offset = glGetUniformLocation(shader.Program, "offset");
+	
+	float time_start = Time.GetTime();
+	float time_now;
+	float time;
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
 	{
 		//Update time
 		Time.Update();
+		time_now = Time.GetTime();
+		time = time_now - time_start;
 
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwSetKeyCallback(window, key_callback);
@@ -128,7 +137,9 @@ int main() {
 		//establecer el shader
 		shader.USE();
 
-		glUniform4f(uniColor, 1.0f, 0.0f, 0.0f, 1.0);
+		glUniform4f(uniColour_min, 0.0f, 1.0f, 0.0f, 1.0);
+		glUniform4f(uniColour_max, 0.0f, 1.0f, 0.75f, 1.0);
+		glUniform1f(offset, sin(time) * 0.25);
 
 		//pitar el VAO
 		glBindVertexArray(VAO);

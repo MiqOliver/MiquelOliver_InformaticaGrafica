@@ -16,6 +16,9 @@ public:
 	inline float DeltaTime() {
 		return deltaTime;
 	}
+	inline float GetTime(){
+		return glfwGetTime();
+	}
 
 private:
 	TimeManager() = default;
@@ -24,4 +27,5 @@ private:
 
 	float deltaTime{ 0.f };
 	float lastTime{ 0.f };
+	float time{ 0.f };
 };
