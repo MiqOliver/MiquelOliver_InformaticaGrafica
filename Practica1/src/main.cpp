@@ -3,14 +3,18 @@
 #include <GL\glew.h>
 //GLFW
 #include <GLFW\glfw3.h>
-#include <iostream>
+//SOIL
+#include <SOIL.h>
+
 #include "../src/Shader.hpp"
 #include "../src/Time.hpp"
+#include <iostream>
 
 using namespace std;
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
 int Numbuffer = 1;
+float text_mixer = 0.5;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//cuando se pulsa una tecla escape cerramos la aplicacion
@@ -20,6 +24,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
 		WIDEFRAME = !WIDEFRAME;
+	}
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		if (text_mixer < 1)
+			text_mixer += 0.1;
+	}	
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		if (text_mixer > 0)
+			text_mixer -= 0.1;
 	}
 }
 
@@ -67,21 +79,19 @@ int main() {
 
 
 	//cargamos los shader
-	Shader shader("./src/SimpleVertexShader.vertexshader", "./src/SimpleFragmentShader.fragmentshader");
+	Shader shader("./src/textureVertex.vertexshader", "./src/TextureFragment.fragmentshader");
 	shader.USE();
 
-	// Definir el buffer de vertices
 	GLfloat VertexBufferObject[] = {
-		0.5f,  0.5f, 0.0f,	// Top Right
-		0.5f, -0.5f, 0.0f,	// Bottom Right
-		-0.5f, -0.5f, 0.0f,	// Bottom Left
-		-0.5f,  0.5f, 0.0f	// Top Left 
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, // Top Right
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // Bottom Right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, // Bottom Left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f  // Top Left 
 	};
 
-	// Definir el EBO
-	GLuint IndexBufferObject[]{
-		0, 1, 3,
-		3, 1, 2
+	GLuint IndexBufferObject[] = {
+		0, 1, 2,
+		2, 3, 0
 	};
 
 	// Crear los VBO, VAO y EBO
@@ -92,9 +102,6 @@ int main() {
 	glGenBuffers(Numbuffer, &VBO);
 	glGenBuffers(Numbuffer, &EBO);
 
-	//Establecer el objeto
-	//Declarar el VBO y el EBO
-
 	//Enlazar el buffer con openGL
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -104,19 +111,55 @@ int main() {
 
 	//Establecer las propiedades de los vertices
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
+GLint posAttrib = glGetAttribLocation(shader.Program, "position");
+	glEnableVertexAttribArray(posAttrib);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
+
+	GLint colAttrib = glGetAttribLocation(shader.Program, "color");
+	glEnableVertexAttribArray(colAttrib);
+	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+
+	GLint texAttrib = glGetAttribLocation(shader.Program, "texCoord");
+	glEnableVertexAttribArray(texAttrib);
+	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
 
 	//liberar el buffer
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//liberar el buffer de vertices
 
-	//Uniforms
-	GLint uniColour_min = glGetUniformLocation(shader.Program, "colour_min");
-	GLint uniColour_max = glGetUniformLocation(shader.Program, "colour_max");
-	GLint offset = glGetUniformLocation(shader.Program, "offset");
+	//Textures
+	GLuint textures[2];
+	glGenTextures(2, textures);
+	int width, height;
+	unsigned char* image;
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	image = SOIL_load_image("./src/kimi_no_na_wa_1.png", &width, &height, 0, SOIL_LOAD_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	SOIL_free_image_data(image);
+	glUniform1i(glGetUniformLocation(shader.Program, "texture1"), 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	image = SOIL_load_image("./src/kimi_no_na_wa_2.png", &width, &height, 0, SOIL_LOAD_RGB);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	SOIL_free_image_data(image);
+	glUniform1i(glGetUniformLocation(shader.Program, "texture2"), 1);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
+	//Uniforms
+	//GLint uniColour_min = glGetUniformLocation(shader.Program, "colour_min");
+	//GLint uniColour_max = glGetUniformLocation(shader.Program, "colour_max");
+	//GLint offset = glGetUniformLocation(shader.Program, "offset");
+	GLint mixer = glGetUniformLocation(shader.Program, "mixer");
+
 	float time_start = Time.GetTime();
 	float time_now;
 	float time;
@@ -134,12 +177,14 @@ int main() {
 		//Establecer el color de fondo
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClearColor(0, 0, 0, 1.0);
+		
 		//establecer el shader
 		shader.USE();
 
-		glUniform4f(uniColour_min, 0.0f, 1.0f, 0.0f, 1.0);
-		glUniform4f(uniColour_max, 0.0f, 1.0f, 0.75f, 1.0);
-		glUniform1f(offset, sin(time) * 0.25 + 0.25);
+		//glUniform4f(uniColour_min, 0.0f, 1.0f, 0.0f, 1.0);
+		//glUniform4f(uniColour_max, 0.0f, 1.0f, 0.75f, 1.0);
+		//glUniform1f(offset, sin(time) * 0.25 + 0.25);
+		glUniform1f(mixer, text_mixer);
 
 		//pitar el VAO
 		glBindVertexArray(VAO);
@@ -160,6 +205,7 @@ int main() {
 		glfwPollEvents();
 	}
 	// liberar la memoria de los VAO, EBO y VBO
+	glDeleteTextures(2, textures);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
