@@ -6,15 +6,26 @@
 //SOIL
 #include <SOIL.h>
 
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
 #include "../src/Shader.hpp"
 #include "../src/Time.hpp"
 #include <iostream>
 
 using namespace std;
+using namespace glm;
+
+#pragma region global variables
+
 const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
 int Numbuffer = 1;
 float text_mixer = 0.5;
+mat4 trans;
+
+#pragma endregion
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	//cuando se pulsa una tecla escape cerramos la aplicacion
@@ -33,9 +44,17 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		if (text_mixer > 0)
 			text_mixer -= 0.1;
 	}
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+		trans = rotate(trans, radians(-15.0f), vec3(0.0f, 0.0f, 1.0f));
+	}
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+		trans = rotate(trans, radians(15.0f), vec3(0.0f, 0.0f, 1.0f));
+	}
 }
 
 int main() {
+
+#pragma region Init
 	//initGLFW
 	//TODO
 	GLFWwindow* window;
@@ -75,12 +94,14 @@ int main() {
 	//fondo
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClearColor(0, 0, 0, 1.0);
-	//TODO
-
 
 	//cargamos los shader
 	Shader shader("./src/textureVertex.vertexshader", "./src/TextureFragment.fragmentshader");
 	shader.USE();
+
+#pragma endregion
+
+#pragma region Buffers
 
 	GLfloat VertexBufferObject[] = {
 		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, // Top Right
@@ -111,7 +132,7 @@ int main() {
 
 	//Establecer las propiedades de los vertices
 
-GLint posAttrib = glGetAttribLocation(shader.Program, "position");
+	GLint posAttrib = glGetAttribLocation(shader.Program, "position");
 	glEnableVertexAttribArray(posAttrib);
 	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
 
@@ -126,6 +147,10 @@ GLint posAttrib = glGetAttribLocation(shader.Program, "position");
 	//liberar el buffer
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+#pragma endregion
+
+#pragma region Textures
 
 	//Textures
 	GLuint textures[2];
@@ -153,16 +178,22 @@ GLint posAttrib = glGetAttribLocation(shader.Program, "position");
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
+
+#pragma endregion	
+
 	//Uniforms
-	//GLint uniColour_min = glGetUniformLocation(shader.Program, "colour_min");
-	//GLint uniColour_max = glGetUniformLocation(shader.Program, "colour_max");
-	//GLint offset = glGetUniformLocation(shader.Program, "offset");
+	GLint uniTrans = glGetUniformLocation(shader.Program, "trans");
 	GLint mixer = glGetUniformLocation(shader.Program, "mixer");
+
 
 	float time_start = Time.GetTime();
 	float time_now;
 	float time;
+
+	//transformations SRT
+	trans = scale(trans, vec3(0.5f, -0.5f, 0.0f));
+	trans = translate(trans, vec3(0.5f, 0.5f, 0.0f));
+	glUniformMatrix4fv(uniTrans, 1, GL_FALSE, value_ptr(trans));
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
@@ -181,10 +212,9 @@ GLint posAttrib = glGetAttribLocation(shader.Program, "position");
 		//establecer el shader
 		shader.USE();
 
-		//glUniform4f(uniColour_min, 0.0f, 1.0f, 0.0f, 1.0);
-		//glUniform4f(uniColour_max, 0.0f, 1.0f, 0.75f, 1.0);
-		//glUniform1f(offset, sin(time) * 0.25 + 0.25);
+
 		glUniform1f(mixer, text_mixer);
+		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, value_ptr(trans));
 
 		//pitar el VAO
 		glBindVertexArray(VAO);
@@ -204,11 +234,17 @@ GLint posAttrib = glGetAttribLocation(shader.Program, "position");
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+#pragma region freeMemory
+
 	// liberar la memoria de los VAO, EBO y VBO
 	glDeleteTextures(2, textures);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &EBO);
+
+#pragma endregion
+
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	exit(EXIT_SUCCESS);
 }
