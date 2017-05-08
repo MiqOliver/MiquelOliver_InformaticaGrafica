@@ -26,6 +26,8 @@
     <ClInclude Include="src\Time.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="src\3D_Fragment.fragmentshader" />
+    <None Include="src\3D_Vertex.vertexshader" />
     <None Include="src\SimpleFragmentShader.fragmentshader" />
     <None Include="src\SimpleVertexShader.vertexshader" />
     <None Include="src\textureFragment.fragmentshader" />

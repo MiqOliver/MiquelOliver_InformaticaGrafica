@@ -43,5 +43,11 @@
     <None Include="src\textureVertex.vertexshader">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="src\3D_Fragment.fragmentshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\3D_Vertex.vertexshader">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -23,7 +23,6 @@ const GLint WIDTH = 800, HEIGHT = 600;
 bool WIDEFRAME = false;
 int Numbuffer = 1;
 float text_mixer = 0.5;
-mat4 trans;
 
 #pragma endregion
 
@@ -43,12 +42,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
 		if (text_mixer > 0)
 			text_mixer -= 0.1;
-	}
-	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		trans = rotate(trans, radians(-15.0f), vec3(0.0f, 0.0f, 1.0f));
-	}
-	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		trans = rotate(trans, radians(15.0f), vec3(0.0f, 0.0f, 1.0f));
 	}
 }
 
@@ -96,7 +89,7 @@ int main() {
 	glClearColor(0, 0, 0, 1.0);
 
 	//cargamos los shader
-	Shader shader("./src/textureVertex.vertexshader", "./src/TextureFragment.fragmentshader");
+	Shader shader("./src/3D_Vertex.vertexshader", "./src/3D_Fragment.fragmentshader");
 	shader.USE();
 
 #pragma endregion
@@ -181,19 +174,34 @@ int main() {
 
 #pragma endregion	
 
-	//Uniforms
-	GLint uniTrans = glGetUniformLocation(shader.Program, "trans");
-	GLint mixer = glGetUniformLocation(shader.Program, "mixer");
+	mat4 view = lookAt(
+		//cambio del punto por pruebas
+		glm::vec3(2.0, 2.0, -2.0),
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 0.0f, 1.0f)
+	);
 
+	//FOV 60º
+	mat4 proj = perspective(radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+	GLint uniProj = glGetUniformLocation(shader.Program, "proj");
+	glUniformMatrix4fv(uniProj, 1, GL_FALSE, value_ptr(proj));
+
+	GLint uniModel = glGetUniformLocation(shader.Program, "model");
+	mat4 model;
+	model = rotate(model, radians(50.0f), vec3(1.0f, 0.0f, 0.0f));
+	model = translate(model, vec3(0.0f, -0.5f, 0.0f));
+	glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(model));
+
+	//Uniforms
+	//GLint uniTrans = glGetUniformLocation(shader.Program, "trans");
+	GLint mixer = glGetUniformLocation(shader.Program, "mixer");
+	GLint uniView = glGetUniformLocation(shader.Program, "view");
+
+	glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(view));
 
 	float time_start = Time.GetTime();
 	float time_now;
 	float time;
-
-	//transformations SRT
-	trans = scale(trans, vec3(0.5f, -0.5f, 0.0f));
-	trans = translate(trans, vec3(0.5f, 0.5f, 0.0f));
-	glUniformMatrix4fv(uniTrans, 1, GL_FALSE, value_ptr(trans));
 
 	//bucle de dibujado
 	while (!glfwWindowShouldClose(window))
@@ -214,7 +222,7 @@ int main() {
 
 
 		glUniform1f(mixer, text_mixer);
-		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, value_ptr(trans));
+		//glUniformMatrix4fv(uniTrans, 1, GL_FALSE, value_ptr(trans));
 
 		//pitar el VAO
 		glBindVertexArray(VAO);
