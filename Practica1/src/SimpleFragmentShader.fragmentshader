@@ -1,7 +1,7 @@
 #version 330 core
 
 // Input data
-in vec4 vertexColor;
+uniform vec4 fragmentColour;
 
 // Ouput data
 out vec4 color;
@@ -10,6 +10,6 @@ void main()
 {
 
 	// Output color
-	color = vertexColor;
+	color = fragmentColour;
 
 }
