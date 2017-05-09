@@ -12,6 +12,7 @@
 
 #include "../src/Shader.hpp"
 #include "../src/Time.hpp"
+#include "../src/Camera.hpp"
 #include <iostream>
 
 using namespace std;
@@ -29,33 +30,19 @@ mat4 model;
 mat4 auxModel;
 mat4 reset;
 
+bool keys[1024];
+
+Camera camera(
+	vec3(2.0f, 2.0f, 0.0f),
+	vec3(0.0f, 0.0f, 0.0f),
+	0.05f, 60.0f
+	);
+
 #pragma endregion
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-	//cuando se pulsa una tecla escape cerramos la aplicacion
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GL_TRUE);
-		cout << "Exit" << endl;
-	}
-	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-		text_mixer = 0.0;
-	}	
-	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
-		text_mixer = 1.0;
-	}
-	if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) {
-		model = rotate(model, radians(-rotation_speed * Time.DeltaTime()), vec3(1.0f, 0.0f, 0.0f));
-	}
-	if (key == GLFW_KEY_UP && action == GLFW_REPEAT) {
-		model = rotate(model, radians(rotation_speed * Time.DeltaTime()), vec3(1.0f, 0.0f, 0.0f));
-	}
-	if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) {
-		model = rotate(model, radians(-rotation_speed * Time.DeltaTime()), vec3(0.0f, 0.0f, 1.0f));
-	}
-	if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) {
-		model = rotate(model, radians(rotation_speed * Time.DeltaTime()), vec3(0.0f, 0.0f, 1.0f));
-	}
-}
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main() {
 
@@ -92,6 +79,8 @@ int main() {
 	//set function when callback
 	//TODO
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
 	//set windows and viewport
 	//TODO
 	int screenWithd, screenHeight;
@@ -231,18 +220,6 @@ int main() {
 
 #pragma endregion	
 
-	mat4 view = lookAt(
-		//cambio del punto por pruebas
-		glm::vec3(2.0, 2.0, 0.5),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f)
-	);
-
-	//FOV 60º
-	mat4 proj = perspective(radians(60.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-	GLint uniProj = glGetUniformLocation(shader.Program, "proj");
-	glUniformMatrix4fv(uniProj, 1, GL_FALSE, value_ptr(proj));
-
 	GLint uniModel = glGetUniformLocation(shader.Program, "model");
 	GLint uniAuxModel = glGetUniformLocation(shader.Program, "auxModel");
 
@@ -250,7 +227,6 @@ int main() {
 	//GLint uniTrans = glGetUniformLocation(shader.Program, "trans");
 	GLint mixer = glGetUniformLocation(shader.Program, "mixer");
 	GLint uniView = glGetUniformLocation(shader.Program, "view");
-	glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(view));
 	GLuint control = glGetUniformLocation(shader.Program, "control");
 
 	float time_start = Time.GetTime();
@@ -266,6 +242,7 @@ int main() {
 		time = time_now - time_start;
 
 		glEnable(GL_DEPTH_TEST);
+		camera.DoMovement(window, keys);
 
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwSetKeyCallback(window, key_callback);
@@ -277,6 +254,12 @@ int main() {
 		shader.USE();
 
 		glUniform1f(mixer, text_mixer);
+
+		glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(camera.LookAt()));
+
+		mat4 proj = perspective(radians(camera.GetFOV()), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+		GLint uniProj = glGetUniformLocation(shader.Program, "proj");
+		glUniformMatrix4fv(uniProj, 1, GL_FALSE, value_ptr(proj));
 
 		//pitar el VAO
 		glBindVertexArray(VAO); {
@@ -348,4 +331,44 @@ int main() {
 
 	// Terminate GLFW, clearing any resources allocated by GLFW.
 	exit(EXIT_SUCCESS);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+
+	if (action == GLFW_PRESS)
+		keys[key] = true;
+	else if (action == GLFW_RELEASE)
+		keys[key] = false;
+
+	//cuando se pulsa una tecla escape cerramos la aplicacion
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, GL_TRUE);
+		cout << "Exit" << endl;
+	}
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		text_mixer = 0.0;
+	}	
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		text_mixer = 1.0;
+	}
+	if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) {
+		model = rotate(model, radians(-rotation_speed * Time.DeltaTime()), vec3(1.0f, 0.0f, 0.0f));
+	}
+	if (key == GLFW_KEY_UP && action == GLFW_REPEAT) {
+		model = rotate(model, radians(rotation_speed * Time.DeltaTime()), vec3(1.0f, 0.0f, 0.0f));
+	}
+	if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) {
+		model = rotate(model, radians(-rotation_speed * Time.DeltaTime()), vec3(0.0f, 0.0f, 1.0f));
+	}
+	if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) {
+		model = rotate(model, radians(rotation_speed * Time.DeltaTime()), vec3(0.0f, 0.0f, 1.0f));
+	}
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	camera.MouseScroll(yoffset);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	camera.MouseMove(window, xpos, ypos);
 }

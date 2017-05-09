@@ -22,6 +22,9 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Camera.hpp" />
+    <ClInclude Include="src\Mesh.hpp" />
+    <ClInclude Include="src\Model.hpp" />
     <ClInclude Include="src\Shader.hpp" />
     <ClInclude Include="src\Time.hpp" />
   </ItemGroup>
