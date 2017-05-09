@@ -20,9 +20,14 @@ using namespace glm;
 #pragma region global variables
 
 const GLint WIDTH = 800, HEIGHT = 600;
-bool WIDEFRAME = false;
 int Numbuffer = 1;
-float text_mixer = 0.5;
+float text_mixer = 0.0;
+float rotation_speed = 1.0f;
+
+
+mat4 model;
+mat4 auxModel;
+mat4 reset;
 
 #pragma endregion
 
@@ -32,16 +37,23 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		glfwSetWindowShouldClose(window, GL_TRUE);
 		cout << "Exit" << endl;
 	}
-	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		WIDEFRAME = !WIDEFRAME;
-	}
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		if (text_mixer < 1)
-			text_mixer += 0.1;
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+		text_mixer = 0.0;
 	}	
-	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		if (text_mixer > 0)
-			text_mixer -= 0.1;
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+		text_mixer = 1.0;
+	}
+	if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT) {
+		model = rotate(model, radians(-rotation_speed * Time.DeltaTime()), vec3(1.0f, 0.0f, 0.0f));
+	}
+	if (key == GLFW_KEY_UP && action == GLFW_REPEAT) {
+		model = rotate(model, radians(rotation_speed * Time.DeltaTime()), vec3(1.0f, 0.0f, 0.0f));
+	}
+	if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT) {
+		model = rotate(model, radians(-rotation_speed * Time.DeltaTime()), vec3(0.0f, 0.0f, 1.0f));
+	}
+	if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT) {
+		model = rotate(model, radians(rotation_speed * Time.DeltaTime()), vec3(0.0f, 0.0f, 1.0f));
 	}
 }
 
@@ -96,46 +108,91 @@ int main() {
 
 #pragma region Buffers
 
-	GLfloat VertexBufferObject[] = {
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f, // Top Right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f, // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f  // Top Left 
+	GLfloat VertexBufferCube[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f , -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f , -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f ,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f ,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
-	GLuint IndexBufferObject[] = {
-		0, 1, 2,
-		2, 3, 0
+	vec3 CubesPositionBuffer[] = {
+		vec3(0.0f ,  0.0f,  0.0f),
+		vec3(2.0f ,  5.0f, -15.0f),
+		vec3(-1.5f, -2.2f, -2.5f),
+		vec3(-3.8f, -2.0f, -12.3f),
+		vec3(2.4f , -0.4f, -3.5f),
+		vec3(-1.7f,  3.0f, -7.5f),
+		vec3(1.3f , -2.0f, -2.5f),
+		vec3(1.5f ,  2.0f, -2.5f),
+		vec3(1.5f ,  0.2f, -1.5f),
+		vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	// Crear los VBO, VAO y EBO
-	GLuint VBO, VAO, EBO;
+	GLuint VBO, VAO; /*EBO;*/
 
 	//reservar memoria para el VAO, VBO y EBO
 	glGenVertexArrays(Numbuffer, &VAO);
 	glGenBuffers(Numbuffer, &VBO);
-	glGenBuffers(Numbuffer, &EBO);
+	//glGenBuffers(Numbuffer, &EBO);
 
 	//Enlazar el buffer con openGL
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferObject), VertexBufferObject, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexBufferObject), IndexBufferObject, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBufferCube), VertexBufferCube, GL_DYNAMIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(CubesPositionBuffer), CubesPositionBuffer, GL_STATIC_DRAW);
 
 	//Establecer las propiedades de los vertices
 
 	GLint posAttrib = glGetAttribLocation(shader.Program, "position");
 	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
+	glVertexAttribPointer(posAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
 
-	GLint colAttrib = glGetAttribLocation(shader.Program, "color");
-	glEnableVertexAttribArray(colAttrib);
-	glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
+	//GLint colAttrib = glGetAttribLocation(shader.Program, "color");
+	//glEnableVertexAttribArray(colAttrib);
+	//glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
 	GLint texAttrib = glGetAttribLocation(shader.Program, "texCoord");
 	glEnableVertexAttribArray(texAttrib);
-	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(6 * sizeof(GLfloat)));
+	glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
 	//liberar el buffer
 	glBindVertexArray(0);
@@ -176,7 +233,7 @@ int main() {
 
 	mat4 view = lookAt(
 		//cambio del punto por pruebas
-		glm::vec3(2.0, 2.0, -2.0),
+		glm::vec3(2.0, 2.0, 0.5),
 		glm::vec3(0.0f, 0.0f, 0.0f),
 		glm::vec3(0.0f, 0.0f, 1.0f)
 	);
@@ -187,17 +244,14 @@ int main() {
 	glUniformMatrix4fv(uniProj, 1, GL_FALSE, value_ptr(proj));
 
 	GLint uniModel = glGetUniformLocation(shader.Program, "model");
-	mat4 model;
-	model = rotate(model, radians(50.0f), vec3(1.0f, 0.0f, 0.0f));
-	model = translate(model, vec3(0.0f, -0.5f, 0.0f));
-	glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(model));
+	GLint uniAuxModel = glGetUniformLocation(shader.Program, "auxModel");
 
 	//Uniforms
 	//GLint uniTrans = glGetUniformLocation(shader.Program, "trans");
 	GLint mixer = glGetUniformLocation(shader.Program, "mixer");
 	GLint uniView = glGetUniformLocation(shader.Program, "view");
-
 	glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(view));
+	GLuint control = glGetUniformLocation(shader.Program, "control");
 
 	float time_start = Time.GetTime();
 	float time_now;
@@ -211,6 +265,8 @@ int main() {
 		time_now = Time.GetTime();
 		time = time_now - time_start;
 
+		glEnable(GL_DEPTH_TEST);
+
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwSetKeyCallback(window, key_callback);
 		//Establecer el color de fondo
@@ -220,27 +276,64 @@ int main() {
 		//establecer el shader
 		shader.USE();
 
-
 		glUniform1f(mixer, text_mixer);
-		//glUniformMatrix4fv(uniTrans, 1, GL_FALSE, value_ptr(trans));
 
 		//pitar el VAO
-		glBindVertexArray(VAO);
-		//pintar con lineas
-		if (WIDEFRAME) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		}
-		//pintar con triangulos
-		if (!WIDEFRAME) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		}
+		glBindVertexArray(VAO); {
+			//original
 
+			glUniform1i(control, 1);
+
+			glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(model));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+
+			//Others
+
+
+			glUniform1i(control, 0);
+
+			auxModel = translate(auxModel, vec3(-1.5f, -7.7f, 2.0f));
+			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			auxModel = reset;
+
+			auxModel = translate(auxModel, vec3(-0.75f, 5.3f, 0.75f));
+			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			auxModel = reset;
+
+			auxModel = translate(auxModel, vec3(-3.5f, 0.7f, -2.0f));
+			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			auxModel = reset;
+
+			auxModel = translate(auxModel, vec3(2.5f, -1.0f, -8.3f));
+			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			auxModel = reset;
+
+			auxModel = translate(auxModel, vec3(0.5f, 3.2f, -10.5f));
+			auxModel = rotate(auxModel, radians(Time.DeltaTime() * 360), vec3(1.0f, 1.0f, 0.0f));
+			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			auxModel = reset;
+		}
 		glBindVertexArray(0);
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 #pragma region freeMemory
@@ -249,7 +342,7 @@ int main() {
 	glDeleteTextures(2, textures);
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
+	//glDeleteBuffers(1, &EBO);
 
 #pragma endregion
 
