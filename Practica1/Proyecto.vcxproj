@@ -20,16 +20,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Object.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Camera.hpp" />
+    <ClInclude Include="src\Object.h" />
     <ClInclude Include="src\Shader.hpp" />
     <ClInclude Include="src\Time.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\3D_Fragment.fragmentshader" />
     <None Include="src\3D_Vertex.vertexshader" />
+    <None Include="src\SimpleFragmentLight.fragmentshader" />
     <None Include="src\SimpleFragmentShader.fragmentshader" />
+    <None Include="src\SimpleVertexLight.vertexshader" />
     <None Include="src\SimpleVertexShader.vertexshader" />
     <None Include="src\textureFragment.fragmentshader" />
     <None Include="src\textureVertex.vertexshader" />

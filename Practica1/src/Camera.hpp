@@ -85,7 +85,7 @@ void Camera::MouseMove(GLFWwindow* window, double xpos, double ypos) {
 
 void Camera::MouseScroll(double yScroll) {
 	if (FOV >= 1.0f && FOV <= 45.0f)
-		FOV -= yScroll * Time.DeltaTime();
+		FOV -= yScroll * Time.DeltaTime() * Sensitivity * 10;
 	if (FOV <= 1.0f)
 		FOV = 1.0f;
 	if (FOV >= 45.0f)

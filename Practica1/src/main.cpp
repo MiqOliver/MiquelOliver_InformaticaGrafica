@@ -10,9 +10,10 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-#include "../src/Shader.hpp"
-#include "../src/Time.hpp"
-#include "../src/Camera.hpp"
+#include "Time.hpp"
+#include "Shader.hpp"
+#include "Camera.hpp"
+#include "Object.h"
 #include <iostream>
 
 using namespace std;
