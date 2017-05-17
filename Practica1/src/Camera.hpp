@@ -13,7 +13,6 @@ class Camera
 private:
 	vec3 cameraPos;
 	vec3 cameraFront;
-	vec3 cameraRight;
 	vec3 cameraUp;
 	GLfloat LastMx;
 	GLfloat LastMy;
@@ -34,28 +33,23 @@ public:
 
 Camera::Camera(vec3 position, vec3 direction, GLfloat sensitivity, GLfloat fov) {
 	cameraPos = position;
-	cameraFront = normalize(position - direction);
-	Sensitivity = sensitivity; //2 horas perdidas. s, no S
+	cameraFront = normalize(direction);
+	Sensitivity = sensitivity;
 	FOV = fov;
 
-	cameraRight = cross(cameraFront, vec3(0.0f, 0.0f, 1.0f));
-	cameraUp = cross(cameraRight, cameraFront);
-
 	firstMouse = true;
-	YAW = -90.0f;
-	PITCH = 0.0f;
 }
 
 void Camera::DoMovement(GLFWwindow* window, bool* keys) {
-	GLfloat cameraSpeed = 0.001f * Time.DeltaTime();
+	GLfloat cameraSpeed = Time.DeltaTime() * Sensitivity * 0.25f;
 	if (keys[GLFW_KEY_W])
-		cameraPos += cameraSpeed * cameraFront;
-	if (keys[GLFW_KEY_S])
 		cameraPos -= cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_S])
+		cameraPos += cameraSpeed * cameraFront;
 	if (keys[GLFW_KEY_A])
-		cameraPos -= cameraRight * cameraSpeed;
+		cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (keys[GLFW_KEY_D])
-		cameraPos += cameraRight * cameraSpeed;
+		cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 
 void Camera::MouseMove(GLFWwindow* window, double xpos, double ypos) {
@@ -82,21 +76,48 @@ void Camera::MouseMove(GLFWwindow* window, double xpos, double ypos) {
 	if (PITCH < -89.0f)
 		PITCH = -89.0f;
 
-	cameraFront.x = cos(radians(YAW) * sin(radians(PITCH)));
-	cameraFront.y = sin(radians(PITCH));
-	cameraFront.z = sin(radians(YAW) * sin(radians(PITCH)));
-	cameraFront = normalize(cameraFront);
+	glm::vec3 aux;
+	aux.x = sin(radians(YAW)) * cos(radians(PITCH));
+	aux.y = sin(radians(PITCH));
+	aux.z = cos(radians(YAW)) * cos(radians(PITCH));
+	cameraFront = normalize(aux);
 }
 
 void Camera::MouseScroll(double yScroll) {
-	if (FOV >= 45 && FOV <= 110)
+	if (FOV >= 1.0f && FOV <= 45.0f)
 		FOV -= yScroll * Time.DeltaTime();
-	if (FOV <= 45)		FOV = 45.0f;
-	if (FOV >= 110)		FOV = 110.0f;
+	if (FOV <= 1.0f)
+		FOV = 1.0f;
+	if (FOV >= 45.0f)
+		FOV = 45.0f;
 }
 
 mat4 Camera::LookAt() {
-	return lookAt(cameraPos, cameraFront + cameraPos, cameraUp);
+	vec3 worldUp{ 0.0f, 1.0f, 0.0f };
+
+	vec3 cameraRight = normalize(cross(cameraFront, worldUp));
+	cameraUp = cross(cameraFront, cameraRight);
+
+	mat4 VecMat;
+	VecMat[0][0] = cameraRight.x;
+	VecMat[1][0] = cameraRight.y;
+	VecMat[2][0] = cameraRight.z;
+
+	VecMat[0][1] = cameraUp.x;
+	VecMat[1][1] = cameraUp.y;
+	VecMat[2][1] = cameraUp.z;
+
+	VecMat[0][2] = cameraFront.x;
+	VecMat[1][2] = cameraFront.y;
+	VecMat[2][2] = cameraFront.z;
+
+	mat4 MatPos;
+	MatPos[3][0] = -cameraPos.x;
+	MatPos[3][1] = -cameraPos.y;
+	MatPos[3][2] = -cameraPos.z;
+
+	mat4 ResMat = VecMat * MatPos;
+	return ResMat;
 }
 
 inline GLfloat Camera::GetFOV() { return FOV; }

@@ -32,12 +32,6 @@
     <ClInclude Include="src\Camera.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.hpp">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Model.hpp">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\SimpleFragmentShader.fragmentshader">

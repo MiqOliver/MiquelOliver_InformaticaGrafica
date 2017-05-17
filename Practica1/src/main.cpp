@@ -35,7 +35,7 @@ bool keys[1024];
 Camera camera(
 	vec3(2.0f, 2.0f, 0.0f),
 	vec3(0.0f, 0.0f, 0.0f),
-	0.05f, 60.0f
+	0.05f, 25.0f
 	);
 
 #pragma endregion
@@ -68,6 +68,7 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	glfwMakeContextCurrent(window);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	//set GLEW and inicializate
 	//TODO
 	glewExperimental = GL_TRUE;
@@ -257,7 +258,7 @@ int main() {
 
 		glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(camera.LookAt()));
 
-		mat4 proj = perspective(radians(camera.GetFOV()), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+		mat4 proj = perspective(radians(camera.GetFOV()), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
 		GLint uniProj = glGetUniformLocation(shader.Program, "proj");
 		glUniformMatrix4fv(uniProj, 1, GL_FALSE, value_ptr(proj));
 
@@ -284,28 +285,28 @@ int main() {
 			auxModel = reset;
 
 			auxModel = translate(auxModel, vec3(-0.75f, 5.3f, 0.75f));
-			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			auxModel = rotate(auxModel, radians(-abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
 			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			auxModel = reset;
 
 			auxModel = translate(auxModel, vec3(-3.5f, 0.7f, -2.0f));
-			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			auxModel = rotate(auxModel, radians(abs(cos(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
 			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			auxModel = reset;
 
 			auxModel = translate(auxModel, vec3(2.5f, -1.0f, -8.3f));
-			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
+			auxModel = rotate(auxModel, radians(-abs(cos(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
 			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			auxModel = reset;
 
 			auxModel = translate(auxModel, vec3(0.5f, 3.2f, -10.5f));
-			auxModel = rotate(auxModel, radians(Time.DeltaTime() * 360), vec3(1.0f, 1.0f, 0.0f));
+			auxModel = rotate(auxModel, radians(abs(sin(Time.GetTime())) * 360), vec3(1.0f, 1.0f, 0.0f));
 			glUniformMatrix4fv(uniAuxModel, 1, GL_FALSE, value_ptr(auxModel));
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
